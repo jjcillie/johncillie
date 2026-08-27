@@ -53,6 +53,10 @@
             color: var(--lavender);
         }
 
+        [x-cloak] {
+            display: none !important;
+        }
+
         /* .reveal elements are visible by default; JS opts them into the
            hidden-then-fade-in animation only once it has successfully set up
            the observer, so broken/slow/blocked JS never hides real content. */
@@ -66,20 +70,25 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+        .tilt {
+            transition: transform 0.15s ease-out;
+            will-change: transform;
+        }
     </style>
 </head>
 
 <body x-data="scrollSpy()">
     <!-- Navigation Bar -->
-    <nav class="bg-[var(--violet)] text-[var(--lavender)] sticky top-0 z-50 shadow-lg shadow-black/30 relative">
+    <nav class="bg-[var(--violet)] text-[var(--lavender)] sticky top-0 z-50 shadow-lg shadow-black/30 relative"
+        x-data="{ mobileOpen: false }">
         <div class="container mx-auto flex justify-between items-center py-4 px-6">
-            <div class="flex items-center space-x-2">
-                <span class="text-lg font-bold">John Cillie</span>
-            </div>
-            <div class="flex items-center space-x-4">
+            <span class="text-lg font-bold">John Cillie</span>
+
+            <!-- Desktop nav -->
+            <div class="hidden md:flex items-center space-x-4">
                 <template x-if="activeSection">
-                    <span class="text-sm text-[var(--lavender)]/50 hidden sm:inline">Now Viewing: <span
-                            x-text="activeSection"></span></span>
+                    <span class="text-sm text-[var(--lavender)]/50">Now Viewing: <span x-text="activeSection"></span></span>
                 </template>
                 <a :class="activeSection === 'About Me' ? 'text-[var(--mint)]' : 'hover:text-[var(--amethyst)]'"
                     class="transition-colors" href="#about">About Me</a>
@@ -87,10 +96,41 @@
                     class="transition-colors" href="#resume">Resume</a>
                 <a :class="activeSection === 'Projects' ? 'text-[var(--mint)]' : 'hover:text-[var(--amethyst)]'"
                     class="transition-colors" href="#projects">Projects</a>
+                <a :class="activeSection === 'Testimonials' ? 'text-[var(--mint)]' : 'hover:text-[var(--amethyst)]'"
+                    class="transition-colors" href="#testimonials">Testimonials</a>
                 <a :class="activeSection === 'Contact' ? 'text-[var(--mint)]' : 'hover:text-[var(--amethyst)]'"
                     class="transition-colors" href="#contact">Contact</a>
+                <button type="button" @click="$dispatch('open-palette')" title="Quick nav (⌘K / Ctrl+K)"
+                    class="text-xs px-2 py-1 rounded border border-[var(--amethyst)]/40 text-[var(--lavender)]/70 hover:text-[var(--mint)] hover:border-[var(--mint)]/60 transition-colors cursor-pointer">
+                    ⌘K
+                </button>
             </div>
+
+            <!-- Mobile hamburger -->
+            <button type="button" class="md:hidden p-2 -mr-2" @click="mobileOpen = !mobileOpen" aria-label="Toggle menu">
+                <svg x-show="!mobileOpen" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                <svg x-show="mobileOpen" x-cloak class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
         </div>
+
+        <!-- Mobile dropdown -->
+        <div x-show="mobileOpen" x-cloak x-transition @click.outside="mobileOpen = false"
+            class="md:hidden border-t border-[var(--amethyst)]/20 bg-[var(--violet)] px-6 py-4 space-y-3">
+            <a @click="mobileOpen = false" class="block hover:text-[var(--amethyst)] transition-colors" href="#about">About Me</a>
+            <a @click="mobileOpen = false" class="block hover:text-[var(--amethyst)] transition-colors" href="#resume">Resume</a>
+            <a @click="mobileOpen = false" class="block hover:text-[var(--amethyst)] transition-colors" href="#projects">Projects</a>
+            <a @click="mobileOpen = false" class="block hover:text-[var(--amethyst)] transition-colors" href="#testimonials">Testimonials</a>
+            <a @click="mobileOpen = false" class="block hover:text-[var(--amethyst)] transition-colors" href="#contact">Contact</a>
+            <button type="button" @click="mobileOpen = false; $dispatch('open-palette')"
+                class="block text-[var(--lavender)]/70 hover:text-[var(--mint)] transition-colors cursor-pointer">
+                ⌘K Quick Nav
+            </button>
+        </div>
+
         <!-- Scroll progress bar -->
         <div id="scroll-progress-bar" class="absolute bottom-0 left-0 h-0.5 bg-[var(--mint)]" style="width: 0%;"></div>
     </nav>
@@ -105,6 +145,48 @@
         </div>
     </section>
 
+    <!-- Currently pill -->
+    <div class="container mx-auto px-6 -mt-6 relative z-10">
+        <div class="max-w-2xl mx-auto bg-[var(--violet)] border border-[var(--mint)]/30 rounded-full px-6 py-3 shadow-lg shadow-black/30 flex items-center gap-3 reveal">
+            <span class="relative flex h-2.5 w-2.5 shrink-0">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--mint)] opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-[var(--mint)]"></span>
+            </span>
+            <p class="text-sm text-[var(--lavender)]/90">
+                <span class="font-semibold text-[var(--mint)]">Currently:</span>
+                Gearing up for peak season — optimizing ShipMonk's processes for the holiday ecommerce surge in orders and returns.
+            </p>
+        </div>
+    </div>
+
+    <!-- Stats strip -->
+    <section class="py-14" aria-label="Highlights">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                <div class="reveal">
+                    <div class="text-4xl font-bold bg-gradient-to-r from-[var(--amethyst)] to-[var(--mint)] bg-clip-text text-transparent"
+                        data-counter data-target="15" data-suffix="+">15+</div>
+                    <p class="text-sm text-[var(--lavender)]/60 mt-1">Years Experience</p>
+                </div>
+                <div class="reveal">
+                    <div class="text-4xl font-bold bg-gradient-to-r from-[var(--amethyst)] to-[var(--mint)] bg-clip-text text-transparent"
+                        data-counter data-target="10" data-prefix="$" data-suffix="M+">$10M+</div>
+                    <p class="text-sm text-[var(--lavender)]/60 mt-1">Annual Savings Delivered</p>
+                </div>
+                <div class="reveal">
+                    <div class="text-4xl font-bold bg-gradient-to-r from-[var(--amethyst)] to-[var(--mint)] bg-clip-text text-transparent"
+                        data-counter data-target="92" data-suffix="%">92%</div>
+                    <p class="text-sm text-[var(--lavender)]/60 mt-1">Peak Inventory Accuracy</p>
+                </div>
+                <div class="reveal">
+                    <div class="text-4xl font-bold bg-gradient-to-r from-[var(--amethyst)] to-[var(--mint)] bg-clip-text text-transparent"
+                        data-counter data-target="108" data-suffix="%">108%</div>
+                    <p class="text-sm text-[var(--lavender)]/60 mt-1">Margin Lift, First Month</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- About Me Section -->
     <section id="about" data-section="About Me" class="py-16">
         <div class="container mx-auto px-6">
@@ -115,14 +197,10 @@
                         src="images/headshot - 1.jpeg" alt="Profile Picture" />
                 </div>
                 <div class="md:w-2/3 md:pl-8">
-                    <p class="mb-4 text-lg leading-relaxed text-[var(--lavender)]/80">
-                        Thanks for stopping by. I'm a Product Manager with 15 years of experience in supply chain, manufacturing and fulfillment technology. I love using technology to solve complex operational problems and make things run more efficiently.</p>
-                    <p class="mb-4 text-lg leading-relaxed text-[var(--lavender)]/80">
-                        I've spent my career leading cross-functional teams to build products that actually solve real business problems. I'm certified in data science and have spent a lot of time implementing AI in enterprise environments. These days I focus on integrating AI-driven automation, predictive analytics and intelligent workflows into systems that people actually use.</p>
-                    <p class="mb-4 text-lg leading-relaxed text-[var(--lavender)]/80">
-                        I'm good at turning data into insights and finding ways to optimize processes through technology. Whether it's deploying machine learning models or scaling integration platforms, I try to balance technical innovation with practical business strategy.</p>
-                    <p class="text-lg leading-relaxed text-[var(--lavender)]/80">
-                        Outside of work I spend time mentoring people and staying engaged with the tech community. I think sharing knowledge and continuously learning are what keep you moving forward in both work and life.</p>
+                    <p class="mb-4 text-xl leading-relaxed text-[var(--lavender)]/90">
+                        My background is in mechatronics — I love working with my hands and solving problems I can actually see the impact of. These days that same instinct drives how I build product: turning messy physical operations into software that works.</p>
+                    <p class="text-xl leading-relaxed text-[var(--lavender)]/90">
+                        But my #1 priority is my family. Outside of work, you'll find me hiking, playing soccer with my sons, snowboarding whenever I can get to the mountains, or picking up my guitar.</p>
                 </div>
             </div>
         </div>
@@ -204,7 +282,7 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
-                <div class="bg-[var(--violet)] p-6 rounded-lg shadow-lg shadow-black/20 border border-[var(--amethyst)]/20 hover:border-[var(--amethyst)]/50 hover:shadow-[0_0_25px_-8px_var(--amethyst)] transition-all reveal">
+                <div class="tilt bg-[var(--violet)] p-6 rounded-lg shadow-lg shadow-black/20 border border-[var(--amethyst)]/20 hover:border-[var(--amethyst)]/50 hover:shadow-[0_0_25px_-8px_var(--amethyst)] transition-shadow reveal">
                     <h2 class="text-xl font-bold text-[var(--lavender)] mb-3">Education</h2>
                     <ul class="list-disc pl-5 space-y-2 text-[var(--lavender)]/80">
                         <li>MS, Mechanical Engineering – NC State University (2010)</li>
@@ -214,7 +292,7 @@
                     </ul>
                 </div>
 
-                <div class="bg-[var(--violet)] p-6 rounded-lg shadow-lg shadow-black/20 border border-[var(--amethyst)]/20 hover:border-[var(--amethyst)]/50 hover:shadow-[0_0_25px_-8px_var(--amethyst)] transition-all reveal"
+                <div class="tilt bg-[var(--violet)] p-6 rounded-lg shadow-lg shadow-black/20 border border-[var(--amethyst)]/20 hover:border-[var(--amethyst)]/50 hover:shadow-[0_0_25px_-8px_var(--amethyst)] transition-shadow reveal"
                     x-data="{ skills: ['Agile Product Development', 'AI Implementation and Adoption', 'ERP & WMS Systems (Oracle NetSuite)', 'Cross-Functional Leadership', 'Data Analytics (Power BI, Metabase, Snowflake)', 'Python, SQL', 'Jira', 'Strategic Planning'] }">
                     <h2 class="text-xl font-bold text-[var(--lavender)] mb-3">Skills & Tools</h2>
                     <div class="flex flex-wrap gap-2">
@@ -234,6 +312,7 @@
 
             <div x-data="{
                 shown: 3,
+                selected: null,
                 projects: [
                     { title: 'Custom iPaas Platform & Global Standardization', image: 'images/ipaas_project.gif', description: 'Designed and deployed a custom, scalable iPaaS (Integration Platform as a Service) solution, establishing documented global standards for seamless enterprise-wide integration. This platform optimized operational workflows, reduced manual dependencies, and enhanced data accuracy, processing over 20,000 transactions annually. The efficiency gains and process automation resulted in $1M in annual cost savings for opimized workflows, licenses and simplicity, setting a new benchmark for integration best practices across the organization.' },
                     { title: 'Fully Automated Robotic NVH Calibration Cell', image: 'images/auto-nvh-mfg.gif', description: 'Developed and implemented an automated production cell for maneuvering heavy and sharp automotive products, addressing the most significant ergonomic and safety challenges in the facility. This project eliminated the need for three operators per shift across three shifts, significantly improving workplace safety and efficiency. Initially deployed on a high-volume production line, the solution was recognized as best-in-class and subsequently standardized across three additional lines within the facility. Its success led to global implementation across all manufacturing facilities for a leading automotive company.' },
@@ -246,11 +325,14 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <template x-for="(project, index) in projects" :key="index">
-                        <div x-show="index < shown" class="reveal bg-[var(--violet)] shadow-lg shadow-black/20 p-6 rounded-lg flex flex-col border border-[var(--amethyst)]/20 hover:border-[var(--amethyst)]/50 hover:shadow-[0_0_25px_-8px_var(--amethyst)] hover:-translate-y-1 transition-all">
+                        <div x-show="index < shown" @click="selected = project" @keydown.enter="selected = project"
+                            tabindex="0" role="button"
+                            class="tilt reveal bg-[var(--violet)] shadow-lg shadow-black/20 p-6 rounded-lg flex flex-col border border-[var(--amethyst)]/20 hover:border-[var(--amethyst)]/50 hover:shadow-[0_0_25px_-8px_var(--amethyst)] transition-shadow cursor-pointer">
                             <h2 class="text-xl font-bold mb-3 md:h-14 flex items-center justify-center text-center text-[var(--lavender)]"
                                 x-text="project.title"></h2>
                             <img :src="project.image" alt="" class="w-full md:h-48 object-cover rounded-md shadow-sm">
-                            <p class="mt-4 md:flex-grow text-[var(--lavender)]/70 leading-relaxed" x-text="project.description"></p>
+                            <p class="mt-4 md:flex-grow text-[var(--lavender)]/70 leading-relaxed line-clamp-4" x-text="project.description"></p>
+                            <span class="mt-3 text-sm font-semibold text-[var(--mint)]">View case study →</span>
                         </div>
                     </template>
                 </div>
@@ -262,12 +344,77 @@
                     </button>
                 </div>
 
+                <!-- Project detail modal -->
+                <div x-show="selected" x-cloak class="fixed inset-0 z-[90] flex items-center justify-center p-4"
+                    x-transition.opacity @keydown.escape.window="selected = null">
+                    <div class="absolute inset-0 bg-black/70" @click="selected = null"></div>
+                    <div class="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-[var(--violet)] border border-[var(--amethyst)]/30 rounded-lg shadow-2xl shadow-black/50 p-6">
+                        <button @click="selected = null" aria-label="Close"
+                            class="absolute top-4 right-4 text-[var(--lavender)]/60 hover:text-[var(--mint)] transition-colors cursor-pointer">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                        <template x-if="selected">
+                            <div>
+                                <h2 class="text-2xl font-bold text-[var(--lavender)] mb-4 pr-8" x-text="selected.title"></h2>
+                                <img :src="selected.image" alt="" class="w-full h-64 object-cover rounded-md mb-4">
+                                <p class="text-[var(--lavender)]/80 leading-relaxed" x-text="selected.description"></p>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
             </div>
         </div>
     </section>
 
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
+    <!-- Testimonials Section -->
+    <section id="testimonials" data-section="Testimonials" class="py-16">
+        <div class="container mx-auto px-6 max-w-3xl">
+            <h1 class="text-4xl font-bold mb-12 text-center text-[var(--lavender)] reveal">What People Say</h1>
+            <div class="relative reveal" x-data="{
+                active: 0,
+                paused: false,
+                testimonials: [
+                    { quote: 'I had the privilege of managing John Cillie during his time at Thrasio, where he served as a Lead Product Manager. John consistently demonstrated exceptional leadership and strategic thinking, driving product initiatives that significantly enhanced our supply chain and financial systems. His ability to integrate advanced analytics and AI-driven tools led to substantial improvements in operational efficiency and cost savings. John’s collaborative approach and dedication to continuous improvement made him an invaluable asset to our team. I highly recommend John for any organization seeking a visionary product leader with a proven track record in delivering impactful solutions.', name: 'Mark McNamara', title: 'Board Advisory, CIO & CISO Expertise', context: 'Managed John directly at Thrasio · May 2025' },
+                    { quote: 'JJ has excelled while working at Cummins with a passion to learn and a strive to succeed. When I started working at Cummins, JJ trained me in all aspects of the company: design of turbocharger, assembly process, how to use applications and software, and roles of a manufacturing engineer. JJ’s career in the past 2 years has been on the fast track from manufacturing engineer to senior manufacturing engineer to senior manufacturing project engineer. He is easy to work with and accepts any challenge given to him.', name: 'Taylor (Lenhart) Meyers', title: 'Functional Excellence Manager, Manufacturing', context: 'Worked with John at Cummins · February 2016' }
+                ],
+                init() {
+                    setInterval(() => {
+                        if (!this.paused) this.active = (this.active + 1) % this.testimonials.length;
+                    }, 7000);
+                }
+            }" @mouseenter="paused = true" @mouseleave="paused = false">
+                <svg class="w-10 h-10 text-[var(--amethyst)]/40 mb-4" fill="currentColor" viewBox="0 0 32 32">
+                    <path d="M9.333 21.333c0-4.42 2.667-8.5 6.667-10.667l1.333 2.4c-2.613 1.573-4 3.787-4 6.267 0.267-0.053 0.507-0.080 0.72-0.080 2.213 0 4.013 1.813 4.013 4.040s-1.8 4.040-4.013 4.040-4.72-2.24-4.72-6zM17.333 21.333c0-4.42 2.667-8.5 6.667-10.667l1.333 2.4c-2.613 1.573-4 3.787-4 6.267 0.267-0.053 0.507-0.080 0.72-0.080 2.213 0 4.013 1.813 4.013 4.040s-1.8 4.040-4.013 4.040-4.72-2.24-4.72-6z"></path>
+                </svg>
+                <template x-for="(t, i) in testimonials" :key="i">
+                    <div x-show="active === i" x-transition:enter="transition-opacity duration-500"
+                        x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                        x-transition:leave="transition-opacity duration-200" x-transition:leave-start="opacity-100"
+                        x-transition:leave-end="opacity-0"
+                        class="bg-[var(--violet)] border border-[var(--amethyst)]/20 rounded-lg p-8 shadow-lg shadow-black/20">
+                        <p class="text-lg text-[var(--lavender)]/90 leading-relaxed italic" x-text="'“' + t.quote + '”'"></p>
+                        <div class="mt-6">
+                            <p class="font-semibold text-[var(--lavender)]" x-text="t.name"></p>
+                            <p class="text-sm text-[var(--mint)]" x-text="t.title"></p>
+                            <p class="text-xs text-[var(--lavender)]/50 mt-1" x-text="t.context"></p>
+                        </div>
+                    </div>
+                </template>
+                <div class="flex justify-center gap-2 mt-6">
+                    <template x-for="(t, i) in testimonials" :key="i">
+                        <button type="button" @click="active = i" :aria-label="'Show testimonial ' + (i + 1)"
+                            :class="active === i ? 'bg-[var(--amethyst)] w-6' : 'bg-[var(--violet)] w-2 hover:bg-[var(--amethyst)]/50'"
+                            class="h-2 rounded-full transition-all cursor-pointer"></button>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Contact Section -->
     <section id="contact" data-section="Contact Me" class="py-16">
@@ -288,6 +435,31 @@
             <p>&copy; 2025 John Cillie | Thank you for taking the time to view my site!</p>
         </div>
     </footer>
+
+    <!-- Command palette (⌘K / Ctrl+K) -->
+    <div x-data="commandPalette()" @open-palette.window="openPalette()" @keydown.window="handleKeydown($event)"
+        x-show="open" x-cloak x-transition.opacity class="fixed inset-0 z-[100] flex items-start justify-center pt-24 px-4">
+        <div class="absolute inset-0 bg-black/70" @click="close()"></div>
+        <div class="relative w-full max-w-lg bg-[var(--violet)] border border-[var(--amethyst)]/30 rounded-lg shadow-2xl shadow-black/50 overflow-hidden"
+            @keydown.escape.window="close()">
+            <input type="text" x-model="query" x-ref="input" @keydown.arrow-down.prevent="move(1)"
+                @keydown.arrow-up.prevent="move(-1)" @keydown.enter.prevent="execute()"
+                placeholder="Type a command or search..."
+                class="w-full px-4 py-3 bg-transparent text-[var(--lavender)] placeholder-[var(--lavender)]/40 outline-none border-b border-[var(--amethyst)]/20" />
+            <ul class="max-h-72 overflow-y-auto py-2">
+                <template x-for="(cmd, i) in filtered" :key="cmd.label">
+                    <li @click="run(cmd)" @mouseenter="active = i"
+                        :class="active === i ? 'bg-[var(--amethyst)]/20 text-[var(--mint)]' : 'text-[var(--lavender)]/80'"
+                        class="px-4 py-2 cursor-pointer flex items-center justify-between transition-colors">
+                        <span x-text="cmd.label"></span>
+                        <span class="text-xs opacity-50" x-text="cmd.hint"></span>
+                    </li>
+                </template>
+                <li x-show="filtered.length === 0" class="px-4 py-3 text-[var(--lavender)]/40 text-sm">No matches</li>
+            </ul>
+        </div>
+    </div>
+
     <script>
         function scrollSpy() {
             return {
@@ -309,6 +481,55 @@
             }
         }
 
+        function commandPalette() {
+            return {
+                open: false,
+                query: '',
+                active: 0,
+                commands: [
+                    { label: 'Go to About Me', hint: 'section', action: () => { window.location.hash = 'about'; } },
+                    { label: 'Go to Resume', hint: 'section', action: () => { window.location.hash = 'resume'; } },
+                    { label: 'Go to Projects', hint: 'section', action: () => { window.location.hash = 'projects'; } },
+                    { label: 'Go to Testimonials', hint: 'section', action: () => { window.location.hash = 'testimonials'; } },
+                    { label: 'Go to Contact', hint: 'section', action: () => { window.location.hash = 'contact'; } },
+                    { label: 'Email John', hint: 'mailto', action: () => { window.location.href = 'mailto:jjcillie@gmail.com'; } },
+                    { label: 'Open LinkedIn', hint: '↗ opens new tab', action: () => { window.open('https://linkedin.com/in/jjcillie', '_blank', 'noopener'); } }
+                ],
+                get filtered() {
+                    const q = this.query.toLowerCase();
+                    return this.commands.filter(c => c.label.toLowerCase().includes(q));
+                },
+                handleKeydown(e) {
+                    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+                        e.preventDefault();
+                        this.open ? this.close() : this.openPalette();
+                    }
+                },
+                openPalette() {
+                    this.open = true;
+                    this.query = '';
+                    this.active = 0;
+                    this.$nextTick(() => this.$refs.input && this.$refs.input.focus());
+                },
+                close() {
+                    this.open = false;
+                },
+                move(delta) {
+                    const len = this.filtered.length;
+                    if (!len) return;
+                    this.active = (this.active + delta + len + len) % len;
+                },
+                execute() {
+                    const cmd = this.filtered[this.active];
+                    if (cmd) this.run(cmd);
+                },
+                run(cmd) {
+                    cmd.action();
+                    this.close();
+                }
+            }
+        }
+
         // Scroll progress bar
         window.addEventListener('scroll', () => {
             const bar = document.getElementById('scroll-progress-bar');
@@ -324,20 +545,72 @@
         // state here, so a JS failure never leaves real content invisible.
         window.addEventListener('load', () => {
             const els = document.querySelectorAll('.reveal');
-            if (!('IntersectionObserver' in window) || els.length === 0) return;
+            if ('IntersectionObserver' in window && els.length > 0) {
+                els.forEach(el => el.classList.add('reveal-ready'));
 
-            els.forEach(el => el.classList.add('reveal-ready'));
+                const revealObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('in-view');
+                            revealObserver.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.1 });
 
-            const revealObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('in-view');
-                        revealObserver.unobserve(entry.target);
-                    }
+                els.forEach(el => revealObserver.observe(el));
+            }
+
+            // Animated stat counters. The target value is already rendered as the
+            // element's text, so this only ever enhances — never gates visibility.
+            const counters = document.querySelectorAll('[data-counter]');
+            if ('IntersectionObserver' in window && counters.length > 0) {
+                const animateCounter = (el) => {
+                    const target = parseFloat(el.dataset.target);
+                    const prefix = el.dataset.prefix || '';
+                    const suffix = el.dataset.suffix || '';
+                    const duration = 1400;
+                    const start = performance.now();
+
+                    const step = (now) => {
+                        const progress = Math.min((now - start) / duration, 1);
+                        const eased = 1 - Math.pow(1 - progress, 3);
+                        const current = Math.round(target * eased);
+                        el.textContent = prefix + current + suffix;
+                        if (progress < 1) {
+                            requestAnimationFrame(step);
+                        } else {
+                            el.textContent = prefix + target + suffix;
+                        }
+                    };
+                    requestAnimationFrame(step);
+                };
+
+                const counterObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            animateCounter(entry.target);
+                            counterObserver.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.5 });
+
+                counters.forEach(el => counterObserver.observe(el));
+            }
+
+            // Cursor tilt on cards
+            document.querySelectorAll('.tilt').forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const rotateX = ((y - rect.height / 2) / (rect.height / 2)) * -4;
+                    const rotateY = ((x - rect.width / 2) / (rect.width / 2)) * 4;
+                    card.style.transform = `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
                 });
-            }, { threshold: 0.1 });
-
-            els.forEach(el => revealObserver.observe(el));
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = '';
+                });
+            });
         });
     </script>
 
