@@ -377,38 +377,70 @@
             <h1 class="text-4xl font-bold mb-12 text-center text-[var(--lavender)] reveal">What People Say</h1>
             <div class="relative reveal" x-data="{
                 active: 0,
-                paused: false,
+                interacted: false,
+                dragStartX: null,
+                dragDeltaX: 0,
                 testimonials: [
                     { quote: 'I had the privilege of managing John Cillie during his time at Thrasio, where he served as a Lead Product Manager. John consistently demonstrated exceptional leadership and strategic thinking, driving product initiatives that significantly enhanced our supply chain and financial systems. His ability to integrate advanced analytics and AI-driven tools led to substantial improvements in operational efficiency and cost savings. John’s collaborative approach and dedication to continuous improvement made him an invaluable asset to our team. I highly recommend John for any organization seeking a visionary product leader with a proven track record in delivering impactful solutions.', name: 'Mark McNamara', title: 'Board Advisory, CIO & CISO Expertise', context: 'Managed John directly at Thrasio · May 2025' },
-                    { quote: 'JJ has excelled while working at Cummins with a passion to learn and a strive to succeed. When I started working at Cummins, JJ trained me in all aspects of the company: design of turbocharger, assembly process, how to use applications and software, and roles of a manufacturing engineer. JJ’s career in the past 2 years has been on the fast track from manufacturing engineer to senior manufacturing engineer to senior manufacturing project engineer. He is easy to work with and accepts any challenge given to him.', name: 'Taylor (Lenhart) Meyers', title: 'Functional Excellence Manager, Manufacturing', context: 'Worked with John at Cummins · February 2016' }
+                    { quote: 'JJ has excelled while working at Cummins with a passion to learn and a strive to succeed. When I started working at Cummins, JJ trained me in all aspects of the company: design of turbocharger, assembly process, how to use applications and software, and roles of a manufacturing engineer. JJ’s career in the past 2 years has been on the fast track from manufacturing engineer to senior manufacturing engineer to senior manufacturing project engineer. He is easy to work with and accepts any challenge given to him.', name: 'Taylor (Lenhart) Meyers', title: 'Functional Excellence Manager, Manufacturing', context: 'Worked with John at Cummins · February 2016' },
+                    { quote: 'I highly recommend John Cillie, a remarkable Product Leader I had the privilege of working with at Thrasio. As the Lead Product Manager for Supply Chain and Enterprise Systems, John demonstrated exceptional strategic vision and execution capabilities that transformed our supply chain operations. John’s ability to navigate complex technical challenges while maintaining focus on business value is outstanding. He spearheaded several critical initiatives, including automated Transfer Order processing, Purchase Order integrations, and real-time shipment tracking systems. His meticulous attention to detail and deep understanding of supply chain processes were instrumental in improving data quality between our 3PL providers and ERP systems. What truly sets John apart is his collaborative leadership style. He excelled at bringing together engineering teams, business stakeholders, and external vendors to deliver cohesive solutions.', name: 'Krishna R', title: 'Engineering Leader | Cloud, Data & AI Platforms', context: 'Worked with John at Thrasio · February 2025' },
+                    { quote: 'John (JJ) came into our group as a product engineer in the Charleston turbo manufacturing plant right out of school in 2011. First attribute that stands out in JJ is that he is very self motivated. He was very quick to come up to speed with the various processes within the organization. I found him to be technically adept and very detail oriented. JJ was always looking for more challenging work and always stepped up to take on more responsibilities within the group. He is very easy to work with and has excellent communication skills, and his curiosity to learn new aspects of products and functions is commendable. I would strongly recommend JJ to any group who is looking for an exceptional engineer.', name: 'Balaji S', title: 'Manager, Worldwide New Product GTM Strategy and Operations at Apple', context: 'Senior to John at Cummins · April 2016' },
+                    { quote: 'JJ joined our team as an intern and quickly became a contributing member. Whether designing a test fixture or sweeping the floors, he never complained and strived to get the most from his experience. He has a passion to learn and is willing to take a chance, even if he is unsure of the outcome. I believe his attitude and work ethic will take him far in life.', name: 'Chris Yahnker, PE', title: 'Engineering Leader | Robotics Leader | Technologist', context: 'Managed John directly at Cummins · January 2011' }
                 ],
+                next() { this.active = (this.active + 1) % this.testimonials.length; },
+                prev() { this.active = (this.active - 1 + this.testimonials.length) % this.testimonials.length; },
+                goTo(i) { this.interacted = true; this.active = i; },
+                stepManual(dir) { this.interacted = true; dir === 1 ? this.next() : this.prev(); },
+                dragStart(e) { this.dragStartX = (e.touches ? e.touches[0].clientX : e.clientX); this.dragDeltaX = 0; },
+                dragMove(e) { if (this.dragStartX === null) return; this.dragDeltaX = (e.touches ? e.touches[0].clientX : e.clientX) - this.dragStartX; },
+                dragEnd() {
+                    if (this.dragStartX === null) return;
+                    if (Math.abs(this.dragDeltaX) > 40) this.stepManual(this.dragDeltaX < 0 ? 1 : -1);
+                    this.dragStartX = null;
+                    this.dragDeltaX = 0;
+                },
                 init() {
                     setInterval(() => {
-                        if (!this.paused) this.active = (this.active + 1) % this.testimonials.length;
-                    }, 7000);
+                        if (!this.interacted) this.next();
+                    }, 5000);
                 }
-            }" @mouseenter="paused = true" @mouseleave="paused = false">
-                <svg class="w-10 h-10 text-[var(--amethyst)]/40 mb-4" fill="currentColor" viewBox="0 0 32 32">
-                    <path d="M9.333 21.333c0-4.42 2.667-8.5 6.667-10.667l1.333 2.4c-2.613 1.573-4 3.787-4 6.267 0.267-0.053 0.507-0.080 0.72-0.080 2.213 0 4.013 1.813 4.013 4.040s-1.8 4.040-4.013 4.040-4.72-2.24-4.72-6zM17.333 21.333c0-4.42 2.667-8.5 6.667-10.667l1.333 2.4c-2.613 1.573-4 3.787-4 6.267 0.267-0.053 0.507-0.080 0.72-0.080 2.213 0 4.013 1.813 4.013 4.040s-1.8 4.040-4.013 4.040-4.72-2.24-4.72-6z"></path>
-                </svg>
-                <template x-for="(t, i) in testimonials" :key="i">
-                    <div x-show="active === i" x-transition:enter="transition-opacity duration-500"
-                        x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-                        x-transition:leave="transition-opacity duration-200" x-transition:leave-start="opacity-100"
-                        x-transition:leave-end="opacity-0"
-                        class="bg-[var(--violet)] border border-[var(--amethyst)]/20 rounded-lg p-8 shadow-lg shadow-black/20">
-                        <p class="text-lg text-[var(--lavender)]/90 leading-relaxed italic" x-text="'“' + t.quote + '”'"></p>
-                        <div class="mt-6">
-                            <p class="font-semibold text-[var(--lavender)]" x-text="t.name"></p>
-                            <p class="text-sm text-[var(--mint)]" x-text="t.title"></p>
-                            <p class="text-xs text-[var(--lavender)]/50 mt-1" x-text="t.context"></p>
-                        </div>
+            }">
+                <div class="overflow-hidden rounded-lg cursor-grab active:cursor-grabbing select-none"
+                    @mousedown="dragStart($event)" @mousemove="dragMove($event)" @mouseup="dragEnd()" @mouseleave="dragStartX !== null ? dragEnd() : null"
+                    @touchstart="dragStart($event)" @touchmove="dragMove($event)" @touchend="dragEnd()">
+                    <div class="flex transition-transform duration-500 ease-out"
+                        :style="'transform: translateX(-' + (active * 100) + '%)'">
+                        <template x-for="(t, i) in testimonials" :key="i">
+                            <div class="w-full shrink-0 px-1">
+                                <div class="bg-[var(--violet)] border border-[var(--amethyst)]/20 rounded-lg p-8 shadow-lg shadow-black/20 min-h-[380px] sm:min-h-[340px] flex flex-col justify-between">
+                                    <div>
+                                        <svg class="w-10 h-10 text-[var(--amethyst)]/40 mb-4" fill="currentColor" viewBox="0 0 32 32">
+                                            <path d="M9.333 21.333c0-4.42 2.667-8.5 6.667-10.667l1.333 2.4c-2.613 1.573-4 3.787-4 6.267 0.267-0.053 0.507-0.080 0.72-0.080 2.213 0 4.013 1.813 4.013 4.040s-1.8 4.040-4.013 4.040-4.72-2.24-4.72-6zM17.333 21.333c0-4.42 2.667-8.5 6.667-10.667l1.333 2.4c-2.613 1.573-4 3.787-4 6.267 0.267-0.053 0.507-0.080 0.72-0.080 2.213 0 4.013 1.813 4.013 4.040s-1.8 4.040-4.013 4.040-4.72-2.24-4.72-6z"></path>
+                                        </svg>
+                                        <p class="text-lg text-[var(--lavender)]/90 leading-relaxed italic" x-text="'“' + t.quote + '”'"></p>
+                                    </div>
+                                    <div class="mt-6">
+                                        <p class="font-semibold text-[var(--lavender)]" x-text="t.name"></p>
+                                        <p class="text-sm text-[var(--mint)]" x-text="t.title"></p>
+                                        <p class="text-xs text-[var(--lavender)]/50 mt-1" x-text="t.context"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
                     </div>
-                </template>
+                </div>
+                <button type="button" @click="stepManual(-1)" aria-label="Previous testimonial"
+                    class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 md:-translate-x-11 w-9 h-9 flex items-center justify-center rounded-full bg-[var(--violet)] border border-[var(--amethyst)]/20 text-[var(--lavender)] hover:bg-[var(--amethyst)]/30 hover:text-[var(--mint)] transition-colors cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+                <button type="button" @click="stepManual(1)" aria-label="Next testimonial"
+                    class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 md:translate-x-11 w-9 h-9 flex items-center justify-center rounded-full bg-[var(--violet)] border border-[var(--amethyst)]/20 text-[var(--lavender)] hover:bg-[var(--amethyst)]/30 hover:text-[var(--mint)] transition-colors cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
                 <div class="flex justify-center gap-2 mt-6">
                     <template x-for="(t, i) in testimonials" :key="i">
-                        <button type="button" @click="active = i" :aria-label="'Show testimonial ' + (i + 1)"
-                            :class="active === i ? 'bg-[var(--amethyst)] w-6' : 'bg-[var(--violet)] w-2 hover:bg-[var(--amethyst)]/50'"
+                        <button type="button" @click="goTo(i)" :aria-label="'Show testimonial ' + (i + 1)"
+                            :class="active === i ? 'bg-[var(--amethyst)] w-6' : 'bg-[var(--amethyst)]/25 w-2 hover:bg-[var(--amethyst)]/50'"
                             class="h-2 rounded-full transition-all cursor-pointer"></button>
                     </template>
                 </div>
